@@ -1,0 +1,17 @@
+# D language build artifacts
+*.exe
+*.obj
+*.o
+*.lib
+*.dll
+*.pdb
+*.exp
+*.ilk
+__debug_bin/
+.dub/
+
+# Editor/IDE files
+.vscode/
+
+# Generated output files
+*.asm
