@@ -1,5 +1,0 @@
-// דוחף שני קבועים למחסנית, מחבר ביניהם, ושומר את התוצאה
-push constant 10
-push constant 20
-add
-pop local 0
