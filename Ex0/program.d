@@ -1,5 +1,10 @@
 module Tar0.program;
 
+ //shani grunberger- 211835970
+ //yael cohen- 326055688
+ // group number:150060.21.5786.42
+
+
 // Standard D library imports
 import std.stdio;       // Input/Output operations (writeln, File)
 import std.file;        // File system operations (dirEntries, isFile)
