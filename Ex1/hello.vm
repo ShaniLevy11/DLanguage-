@@ -1,0 +1,12 @@
+push constant 2
+pop argument 3
+push constant 8
+neg
+pop local 5
+push constant 7
+pop temp 1
+push constant 10
+push local 5
+push temp 1
+inc2
+pop argument 4

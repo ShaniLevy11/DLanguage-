@@ -30,6 +30,17 @@ string getFileTitle(string path) {
 
 // ---------------------- STACK ARITHMETIC ----------------------
 
+string translateInc2() {
+    string result = "@SP\n";      // Load the stack pointer (SP) address
+    result ~= "A=M-1\n";          // Set A to point to the top element of the stack
+    result ~= "M=M+1\n";          // Increment the top stack value by 1
+
+    result ~= "A=A-1\n";          // Move A to the second element from the top
+    result ~= "M=M+1\n";          // Increment the second stack value by 1
+
+    return result;                // Return the generated assembly code
+}
+
 // push constant x
 // Pushes a constant value into the stack
 string translatePushConstant(string value) {
@@ -406,6 +417,7 @@ string processLine(string line) {
     else if (command == "and") return translateAnd();
     else if (command == "or") return translateOr();
     else if (command == "not") return translateNot();
+    else if (command == "inc2") return translateInc2(); ////////
     else if (command == "eq") return translateEq();
     else if (command == "gt") return translateGt();
     else if (command == "lt") return translateLt();
