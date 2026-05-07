@@ -1,3 +1,5 @@
+module VMTranslator;
+
 import std.stdio;
 import std.file;
 import std.string;
@@ -366,6 +368,30 @@ string translatePopStatic(string index) {
     return result;
 }
 
+// ---------------------- EX2: PROGRAM FLOW ----------------------
+
+// label command
+string translateLabel(string label) {
+    return "(" ~ label ~ ")\n";
+}
+
+// goto command
+string translateGoto(string label) {
+    string result = "@" ~ label ~ "\n";
+    result ~= "0;JMP\n";
+    return result;
+}
+
+// if-goto command
+string translateIfGoto(string label) {
+    string result = "@SP\n";
+    result ~= "AM=M-1\n";
+    result ~= "D=M\n";
+    result ~= "@" ~ label ~ "\n";
+    result ~= "D;JNE\n";
+    return result;
+}
+
 // ---------------------- PARSER ----------------------
 
 // Process a single VM line and return ASM code
@@ -410,17 +436,22 @@ string processLine(string line) {
         else if (segment == "static") return translatePopStatic(value);
     }
 
-    // arithmetic commands
+    // arithmetic commands (Ex1)
     else if (command == "add") return translateAdd();
     else if (command == "sub") return translateSub();
     else if (command == "neg") return translateNeg();
     else if (command == "and") return translateAnd();
     else if (command == "or") return translateOr();
     else if (command == "not") return translateNot();
-    else if (command == "inc2") return translateInc2(); ////////
+    else if (command == "inc2") return translateInc2();
     else if (command == "eq") return translateEq();
     else if (command == "gt") return translateGt();
     else if (command == "lt") return translateLt();
+
+    // program flow commands (Ex2)
+    else if (command == "label") return translateLabel(words[1]);
+    else if (command == "goto") return translateGoto(words[1]);
+    else if (command == "if-goto") return translateIfGoto(words[1]);
 
     return "";
 }
