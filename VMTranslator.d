@@ -392,6 +392,133 @@ string translateIfGoto(string label) {
     return result;
 }
 
+// ---------------------- EX2: FUNCTION CALLING ----------------------
+
+// function command
+string translateFunction(string functionName, string nVars) {
+    string result = "(" ~ functionName ~ ")\n";
+    int n = to!int(nVars);
+    for (int i = 0; i < n; i++) {
+        result ~= translatePushConstant("0");
+    }
+    return result;
+}
+
+// call command
+string translateCall(string functionName, string nArgs) {
+    string returnLabel = functionName ~ "$ret." ~ to!string(labelCounter++);
+
+    // push returnAddress
+    string result = "@" ~ returnLabel ~ "\n";
+    result ~= "D=A\n";
+    result ~= "@SP\n";
+    result ~= "A=M\n";
+    result ~= "M=D\n";
+    result ~= "@SP\n";
+    result ~= "M=M+1\n";
+
+    // push LCL, ARG, THIS, THAT
+    string[] segments = ["LCL", "ARG", "THIS", "THAT"];
+    foreach (seg; segments) {
+        result ~= "@" ~ seg ~ "\n";
+        result ~= "D=M\n";
+        result ~= "@SP\n";
+        result ~= "A=M\n";
+        result ~= "M=D\n";
+        result ~= "@SP\n";
+        result ~= "M=M+1\n";
+    }
+
+    // ARG = SP - nArgs - 5
+    result ~= "@SP\n";
+    result ~= "D=M\n";
+    result ~= "@5\n";
+    result ~= "D=D-A\n";
+    result ~= "@" ~ nArgs ~ "\n";
+    result ~= "D=D-A\n";
+    result ~= "@ARG\n";
+    result ~= "M=D\n";
+
+    // LCL = SP
+    result ~= "@SP\n";
+    result ~= "D=M\n";
+    result ~= "@LCL\n";
+    result ~= "M=D\n";
+
+    // goto functionName
+    result ~= translateGoto(functionName);
+
+    // (returnAddress)
+    result ~= "(" ~ returnLabel ~ ")\n";
+
+    return result;
+}
+
+// return command
+string translateReturn() {
+    // FRAME = LCL
+    string result = "@LCL\n";
+    result ~= "D=M\n";
+    result ~= "@R13\n"; // R13 (FRAME)
+    result ~= "M=D\n";
+
+    // RET = *(FRAME - 5)
+    result ~= "@5\n";
+    result ~= "A=D-A\n";
+    result ~= "D=M\n";
+    result ~= "@R14\n"; // R14 (RET)
+    result ~= "M=D\n";
+
+    // *ARG = pop()
+    result ~= "@SP\n";
+    result ~= "AM=M-1\n";
+    result ~= "D=M\n";
+    result ~= "@ARG\n";
+    result ~= "A=M\n";
+    result ~= "M=D\n";
+
+    // SP = ARG + 1
+    result ~= "@ARG\n";
+    result ~= "D=M+1\n";
+    result ~= "@SP\n";
+    result ~= "M=D\n";
+
+    // THAT = *(FRAME - 1)
+    result ~= "@R13\n";
+    result ~= "AM=M-1\n";
+    result ~= "D=M\n";
+    result ~= "@THAT\n";
+    result ~= "M=D\n";
+
+    // THIS = *(FRAME - 2)
+    result ~= "@R13\n";
+    result ~= "AM=M-1\n";
+    result ~= "D=M\n";
+    result ~= "@THIS\n";
+    result ~= "M=D\n";
+
+    // ARG = *(FRAME - 3)
+    result ~= "@R13\n";
+    result ~= "AM=M-1\n";
+    result ~= "D=M\n";
+    result ~= "@ARG\n";
+    result ~= "M=D\n";
+
+    // LCL = *(FRAME - 4)
+    result ~= "@R13\n";
+    result ~= "AM=M-1\n";
+    result ~= "D=M\n";
+    result ~= "@LCL\n";
+    result ~= "M=D\n";
+
+    // goto RET
+    result ~= "@R14\n";
+    result ~= "A=M\n";
+    result ~= "0;JMP\n";
+
+    return result;
+}
+
 // ---------------------- PARSER ----------------------
 
 // Process a single VM line and return ASM code
@@ -453,8 +580,15 @@ string processLine(string line) {
     else if (command == "goto") return translateGoto(words[1]);
     else if (command == "if-goto") return translateIfGoto(words[1]);
 
+    // function calling commands (Ex2)
+    else if (command == "function") return translateFunction(words[1], words[2]);
+    else if (command == "call") return translateCall(words[1], words[2]);
+    else if (command == "return") return translateReturn();
+
     return "";
 }
+
+
 
 // ---------------------- FILE PROCESSING ----------------------
 
@@ -476,21 +610,44 @@ void processFile(string filename) {
 
 // Program entry point
 void main(string[] args) {
-
     // check input arguments
     if (args.length < 2) {
-        writeln("Usage: vm_translator <file.vm>");
+        writeln("Usage: vm_translator <file.vm or directory>");
         return;
     }
 
-    inputFile = args[1];
-    outputFile = stripExtension(inputFile) ~ ".asm";
-
+    string inputPath = args[1];
     labelCounter = 0;
 
-    // create/clear output file
-    std.file.write(outputFile, "");
+    if (exists(inputPath) && isDir(inputPath)) {
+        // Directory input
+        outputFile = buildPath(inputPath, baseName(inputPath) ~ ".asm");
+        
+        // Ensure output directory exists
+        mkdirRecurse(dirName(outputFile));
+        
+        // Clear/create output file and write bootstrap
+        std.file.write(outputFile, "");
+        // writeBootstrap();
 
-    // start translation process
-    processFile(inputFile);
+        // Process all .vm files in the directory
+        foreach (DirEntry entry; dirEntries(inputPath, "*.vm", SpanMode.shallow)) {
+            inputFile = entry.name; // Update global for static variables
+            processFile(entry.name);
+        }
+    } else {
+        // Single file input
+        inputFile = inputPath;
+        outputFile = stripExtension(inputFile) ~ ".asm";
+
+        // Ensure output directory exists
+        mkdirRecurse(dirName(outputFile));
+
+        // Clear/create output file
+        std.file.write(outputFile, "");
+        
+        // If it's a single file, we might not need bootstrap unless it's part of a larger project structure
+        // For simplicity, we assume single files are for simpler tests (like Ex1)
+        processFile(inputFile);
+    }
 }
