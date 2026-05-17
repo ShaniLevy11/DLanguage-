@@ -1,0 +1,117 @@
+// Square.jack - Represents the Square object
+
+class Square {
+    field int x, y; // screen location of the Square's top-left corner
+    field int size;
+
+    constructor Square new(int ax, int ay, int asize) {
+        let x = ax;
+        let y = ay;
+        let size = asize;
+        do draw();
+        return this;
+    }
+
+    method void dispose() {
+        do Memory.deAlloc(this);
+        return;
+    }
+
+    method void draw() {
+        do Screen.setColor(true);
+        do Screen.drawRectangle(x, y, x + size, y + size);
+        return;
+    }
+
+    method void erase() {
+        do Screen.setColor(false);
+        do Screen.drawRectangle(x, y, x + size, y + size);
+        return;
+    }
+
+    method void moveUp() {
+        if (y > 0) {
+            do erase();
+            let x = x - 2;
+            
+            do draw();
+        }
+        return;
+    }
+
+    method void moveDown() {
+        if (y < (255 - size)) {
+            do erase();
+            let x = x + 2;
+            do draw();
+        }
+        return;
+    }
+
+    method void moveLeft() {
+        if (x > 0) {
+            do erase();
+            let y = y - 2;
+            do draw();
+        }
+        return;
+    }
+
+    method void moveRight() {
+        if (x < (511 - size)) {
+            do erase();
+            
+            let y = y + 2;
+            do draw();
+        }
+        return;
+    }
+
+    method void grow() {
+        do erase();
+        let size = size + 2;
+        if ((x + size) > 511) { let size = 511 - x; }
+        if ((y + size) > 255) { let size = 255 - y; }
+        do draw();
+        return;
+    }
+
+    method void shrink() {
+        if (size > 4) {
+            do erase();
+            let size = size - 2;
+            do draw();
+        }
+        return;
+    }
+
+    method int handleActions() {
+        var char key;
+        var int moveCounter;
+        var boolean exit;
+
+        let moveCounter = 0;
+        let exit = false;
+
+        while (~exit) {
+            // waits for a key to be pressed
+            while (key = 0) {
+                let key = Keyboard.keyPressed();
+            }
+
+            if (key = 130) { do moveUp(); let moveCounter = moveCounter + 1; }     // up arrow
+            if (key = 132) { do moveDown(); let moveCounter = moveCounter + 1; }   // down arrow
+            if (key = 131) { do moveLeft(); let moveCounter = moveCounter + 1; }   // left arrow
+            if (key = 133) { do moveRight(); let moveCounter = moveCounter + 1; }  // right arrow
+            if (key = 66)  { do grow(); let moveCounter = moveCounter + 1; }       // 'b' key
+            if (key = 83)  { do shrink(); let moveCounter = moveCounter + 1; }     // 's' key
+            if (key = 81)  { let exit = true; } // 'q' key
+
+            // waits for the key to be released
+            while (~(key = 0)) {
+                let key = Keyboard.keyPressed();
+            }
+        }
+        return moveCounter;
+    }
+}

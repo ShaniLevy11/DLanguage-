@@ -1,0 +1,66 @@
+// Main.jack - Main entry point for the game
+
+class Main {
+    function void main() {
+        var Square square;
+        var Rectangle rectangle;
+        var char key;
+        var int moves;
+        var boolean squareSelected;
+
+        // Initialization
+        let square = Square.new(50, 100, 30);
+        let rectangle = Rectangle.new(200, 100, 40, 20);
+        let moves = 0;
+        let squareSelected = false;
+
+        // Print instructions
+        do Output.moveCursor(10, 0);
+        do Output.printString("Press '1' for Square or '2' for Rectangle");
+
+        // Wait for user to select an object
+        while (key = 0) {
+            let key = Keyboard.keyPressed();
+        }
+
+        // Decide what to do based on user input
+        if (key = 49) { // '1'
+            let squareSelected = true;
+        } else {
+            // If not '1', assume '2'.
+            let squareSelected = false;
+        }
+
+        do Screen.clearScreen();
+
+        if (squareSelected) {
+            do square.draw();
+            let moves = square.handleActions();
+        }
+        else {
+            do rectangle.draw();
+            let moves = rectangle.handleActions();
+        }
+
+        // Game over, print results
+        do Screen.clearScreen();
+        do Output.moveCursor(10, 0);
+        do Output.printString("Game Over!");
+        do Output.moveCursor(12, 0);
+        if (squareSelected) {
+            do Output.printString("You chose the Square.");
+        } else {
+            do Output.printString("You chose the Rectangle.");
+        }
+        do Output.moveCursor(13, 0);
+        do Output.printString("Number of moves: ");
+        do Output.printInt(moves);
+
+        // Cleanup
+        do square.dispose();
+        do rectangle.dispose();
+
+        do Sys.halt();
+        return;
+    }
+}
