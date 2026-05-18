@@ -15,7 +15,7 @@ class Main {
         let squareSelected = false;
 
         // Print instructions
-        do Output.moveCursor(10, 0);
+        do Output.moveCursor(15, 0);
         do Output.printString("Press '1' for Square or '2' for Rectangle");
 
         // Wait for user to select an object
