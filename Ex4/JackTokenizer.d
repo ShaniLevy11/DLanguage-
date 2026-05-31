@@ -124,14 +124,14 @@ class JackTokenizer {
             }
 
             if (ch == '"') {
-                index++;
+                index++; // פוסח על גרש פותח
                 size_t start = index;
                 while (index < source.length && source[index] != '"') {
                     index++;
                 }
                 string val = source[start .. index];
                 if (index < source.length) {
-                    index++;
+                    index++; // פוסח על גרש סוגר
                 }
                 current = Token(TokenType.STRING_CONST, val);
                 return;
@@ -190,33 +190,36 @@ string escapeXml(string value) {
 
 // יצירת קובץ XML עבור קובץ Jack יחיד
 void processFile(string inputPath) {
+    // בניית שם קובץ פלט מדויק ללא נקודה כפולה: SquareT.My.xml
     string outputPath = stripExtension(inputPath) ~ "T.My.xml";
+    
     auto tokenizer = new JackTokenizer(inputPath);
-    auto writer = File(outputPath, "w");
+    auto writer = File(outputPath, "w"); // מצב "w" מוחק תוכן ישן וכותב מחדש
 
     writer.writeln("<tokens>");
 
     while (tokenizer.hasMoreTokens()) {
         tokenizer.advance();
         TokenType tType = tokenizer.getTokenType();
-        string tVal = escapeXml(tokenizer.getTokenValue());
+        string tVal = tokenizer.getTokenValue();
 
         string line;
         final switch (tType) {
             case TokenType.KEYWORD:
-                line = format("<keyword> %s </keyword>", tVal);
+                line = "<keyword> " ~ escapeXml(tVal) ~ " </keyword>";
                 break;
             case TokenType.SYMBOL:
-                line = format("<symbol> %s </symbol>", tVal);
+                line = "<symbol> " ~ escapeXml(tVal) ~ " </symbol>";
                 break;
             case TokenType.IDENTIFIER:
-                line = format("<identifier> %s </identifier>", tVal);
+                line = "<identifier> " ~ escapeXml(tVal) ~ " </identifier>";
                 break;
             case TokenType.INT_CONST:
-                line = format("<integerConstant> %s </integerConstant>", tVal);
+                line = "<integerConstant> " ~ escapeXml(tVal) ~ " </integerConstant>";
                 break;
             case TokenType.STRING_CONST:
-                line = format("<stringConstant> %s </stringConstant>", tVal);
+                // במחרוזות (stringConstant) אין צורך בגרשיים בפלט עצמו, אך הרווחים סביבו נשמרים
+                line = "<stringConstant> " ~ escapeXml(tVal) ~ " </stringConstant>";
                 break;
         }
         writer.writeln(line);
