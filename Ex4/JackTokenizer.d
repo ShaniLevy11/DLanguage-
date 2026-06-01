@@ -80,8 +80,6 @@ private string stripComments(string input) {
 
     return output.data.idup;
 }
-
-// טוקנייזר ראשי לקבצי Jack
 class JackTokenizer {
     private string source;
     private size_t index = 0;
@@ -267,3 +265,4 @@ int main(string[] args) {
 
     return 0;
 }
+
