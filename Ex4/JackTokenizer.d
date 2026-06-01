@@ -174,3 +174,104 @@ class JackTokenizer {
         return source[start .. index];
     }
 }
+
+// המרה של תווי XML בעייתיים לייצוג בטוח
+string escapeXml(string value) {
+    switch (value) {
+        case "<":  return "&lt;";
+        case ">":  return "&gt;";
+        case "\"": return "&quot;";
+        case "&":  return "&amp;";
+        default:   return value;
+    }
+}
+
+// יצירת קובץ XML עבור קובץ Jack יחיד
+void processFile(string inputPath) {
+    // בניית שם קובץ פלט מדויק ללא נקודה כפולה: SquareT.My.xml
+    string outputPath = stripExtension(inputPath) ~ "T.My.xml";
+    
+    auto tokenizer = new JackTokenizer(inputPath);
+    auto writer = File(outputPath, "w"); // מצב "w" מוחק תוכן ישן וכותב מחדש
+
+    writer.writeln("<tokens>");
+
+    while (tokenizer.hasMoreTokens()) {
+        tokenizer.advance();
+        TokenType tType = tokenizer.getTokenType();
+        string tVal = tokenizer.getTokenValue();
+
+        string line;
+        final switch (tType) {
+            case TokenType.KEYWORD:
+                line = "<keyword> " ~ escapeXml(tVal) ~ " </keyword>";
+                break;
+            case TokenType.SYMBOL:
+                line = "<symbol> " ~ escapeXml(tVal) ~ " </symbol>";
+                break;
+            case TokenType.IDENTIFIER:
+                line = "<identifier> " ~ escapeXml(tVal) ~ " </identifier>";
+                break;
+            case TokenType.INT_CONST:
+                line = "<integerConstant> " ~ escapeXml(tVal) ~ " </integerConstant>";
+                break;
+            case TokenType.STRING_CONST:
+                // במחרוזות (stringConstant) אין צורך בגרשיים בפלט עצמו, אך הרווחים סביבו נשמרים
+                line = "<stringConstant> " ~ escapeXml(tVal) ~ " </stringConstant>";
+                break;
+        }
+        writer.writeln(line);
+    }
+
+    writer.writeln("</tokens>");
+    writer.close();
+    writefln("Success! Token file created: %s", outputPath);
+}
+
+// כניסת התוכנית: קריאה של קובץ בודד או תיקיה
+int main(string[] args) {
+    if (args.length < 2) {
+        writeln("Usage: JackAnalyzer <path_to_file_or_directory>");
+        return 1;
+    }
+
+    string inputPath = args[1];
+
+    if (!exists(inputPath)) {
+        writeln("Error: Path not found.");
+        return 1;
+    }
+
+    auto files = appender!(string[]);
+
+    if (isDir(inputPath)) {
+        foreach (DirEntry entry; dirEntries(inputPath, SpanMode.shallow)) {
+            if (entry.isFile && entry.name.endsWith(".jack")) {
+                files.put(entry.name);
+            }
+        }
+    } else if (inputPath.endsWith(".jack")) {
+        files.put(inputPath);
+    }
+
+    if (files.data.length == 0) {
+        writeln("No .jack files found to process.");
+        return 0;
+    }
+
+    foreach (file; files.data) {
+        processFile(file);
+    }
+
+    return 0;
+}
+// המרה של תווי XML בעייתיים לייצוג בטוח
+string escapeXml(string value) {
+    switch (value) {
+        case "<":  return "&lt;";
+        case ">":  return "&gt;";
+        case "\"": return "&quot;";
+        case "&":  return "&amp;";
+        default:   return value;
+    }
+}
