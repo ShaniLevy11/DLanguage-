@@ -265,13 +265,3 @@ int main(string[] args) {
 
     return 0;
 }
-// המרה של תווי XML בעייתיים לייצוג בטוח
-string escapeXml(string value) {
-    switch (value) {
-        case "<":  return "&lt;";
-        case ">":  return "&gt;";
-        case "\"": return "&quot;";
-        case "&":  return "&amp;";
-        default:   return value;
-    }
-}
