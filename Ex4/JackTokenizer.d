@@ -9,7 +9,10 @@ import std.algorithm;
 import std.array;
 import std.format;
 
-// סוגי הטוקנים האפשריים בשפת Jack
+/**
+ * TokenType defines the valid token types in the Jack language.
+ * Used to identify the essence of the token during the lexical analysis phase.
+ */
 enum TokenType {
     KEYWORD,
     SYMBOL,
@@ -18,13 +21,19 @@ enum TokenType {
     STRING_CONST
 }
 
-// מייצג טוקן בודד עם סוג וערך
+/**
+ * Struct representing a single token with its type and value.
+ */
 struct Token {
     TokenType type;
     string value;
 }
 
-// הסרה ידנית של הערות, תוך שמירה על מחרוזות תקינות
+/**
+ * Manual comment removal function for source code.
+ * This process removes single-line comments (//) and block comments (/* ... *\/),
+ * while preserving content inside strings to avoid accidental corruption.
+ */
 private string stripComments(string input) {
     auto output = appender!string;
     bool inLineComment = false;
@@ -81,12 +90,15 @@ private string stripComments(string input) {
     return output.data.idup;
 }
 
-// טוקנייזר ראשי לקבצי Jack
+/**
+ * The JackTokenizer class is responsible for breaking down the source code into individual tokens.
+ */
 class JackTokenizer {
     private string source;
     private size_t index = 0;
     private Token current;
 
+    // List of all keywords permitted in the Jack language
     private static const string[] keywordList = [
         "class", "constructor", "function", "method", "field",
         "static", "var", "int", "char", "boolean", "void",
@@ -94,21 +106,31 @@ class JackTokenizer {
         "if", "else", "while", "return"
     ];
 
+    // List of all symbols permitted in the Jack language
     private static const char[] symbolList = [
         '{', '}', '(', ')', '[', ']', '.', ',', ';',
         '+', '-', '*', '/', '&', '|', '<', '>', '=', '~'
     ];
 
+    /**
+     * Class constructor: reads text from the file and strips comments.
+     */
     this(string inputFilePath) {
         string rawText = readText(inputFilePath);
         this.source = stripComments(rawText);
     }
 
+    /**
+     * Checks if there are more tokens left in the file to process.
+     */
     public bool hasMoreTokens() {
         skipSpaces();
         return index < source.length;
     }
 
+    /**
+     * Advances the tokenizer to the next token in the input and sets its type and value.
+     */
     public void advance() {
         while (true) {
             if (!hasMoreTokens()) {
@@ -124,14 +146,14 @@ class JackTokenizer {
             }
 
             if (ch == '"') {
-                index++; // פוסח על גרש פותח
+                index++; // Skip opening quote
                 size_t start = index;
                 while (index < source.length && source[index] != '"') {
                     index++;
                 }
                 string val = source[start .. index];
                 if (index < source.length) {
-                    index++; // פוסח על גרש סוגר
+                    index++; // Skip closing quote
                 }
                 current = Token(TokenType.STRING_CONST, val);
                 return;
@@ -154,20 +176,32 @@ class JackTokenizer {
         }
     }
 
+    /**
+     * Returns the type of the current token.
+     */
     public TokenType getTokenType() {
         return current.type;
     }
 
+    /**
+     * Returns the text value of the current token.
+     */
     public string getTokenValue() {
         return current.value;
     }
 
+    /**
+     * Skips whitespace characters in the source text.
+     */
     private void skipSpaces() {
         while (index < source.length && isWhite(source[index])) {
             index++;
         }
     }
 
+    /**
+     * Helper function for reading a sequence of characters as long as a condition is met.
+     */
     private string readWhile(bool delegate(char) predicate) {
         size_t start = index;
         while (index < source.length && predicate(source[index])) {
@@ -177,7 +211,9 @@ class JackTokenizer {
     }
 }
 
-// המרה של תווי XML בעייתיים לייצוג בטוח
+/**
+ * Function to convert problematic XML characters (like < or &) into safe representations within XML tags.
+ */
 string escapeXml(string value) {
     switch (value) {
         case "<":  return "&lt;";
@@ -188,13 +224,14 @@ string escapeXml(string value) {
     }
 }
 
-// יצירת קובץ XML עבור קובץ Jack יחיד
+/**
+ * Function that processes a single Jack file and generates an output file in XML format.
+ */
 void processFile(string inputPath) {
-    // בניית שם קובץ פלט מדויק ללא נקודה כפולה: SquareT.My.xml
     string outputPath = stripExtension(inputPath) ~ "T.My.xml";
     
     auto tokenizer = new JackTokenizer(inputPath);
-    auto writer = File(outputPath, "w"); // מצב "w" מוחק תוכן ישן וכותב מחדש
+    auto writer = File(outputPath, "w");
 
     writer.writeln("<tokens>");
 
@@ -218,7 +255,6 @@ void processFile(string inputPath) {
                 line = "<integerConstant> " ~ escapeXml(tVal) ~ " </integerConstant>";
                 break;
             case TokenType.STRING_CONST:
-                // במחרוזות (stringConstant) אין צורך בגרשיים בפלט עצמו, אך הרווחים סביבו נשמרים
                 line = "<stringConstant> " ~ escapeXml(tVal) ~ " </stringConstant>";
                 break;
         }
