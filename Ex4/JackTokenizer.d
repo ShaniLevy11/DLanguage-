@@ -231,6 +231,7 @@ void processFile(string inputPath) {
 }
 
 // כניסת התוכנית: קריאה של קובץ בודד או תיקיה
+version (JackTokenizerMain)
 int main(string[] args) {
     if (args.length < 2) {
         writeln("Usage: JackAnalyzer <path_to_file_or_directory>");
