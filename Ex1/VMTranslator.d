@@ -1,4 +1,4 @@
-module VMTranslator;
+module Ex1.VMTranslator;
 
 import std.stdio;
 import std.file;
