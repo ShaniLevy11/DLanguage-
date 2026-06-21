@@ -266,8 +266,10 @@ void processFile(string inputPath) {
     writefln("Success! Token file created: %s", outputPath);
 }
 
-// כניסת התוכנית: קריאה של קובץ בודד או תיקיה
-version (JackTokenizerMain)
+/**
+ * The main function: accepts a path to a single file or directory, 
+ * and processes all found Jack files.
+ */
 int main(string[] args) {
     if (args.length < 2) {
         writeln("Usage: JackAnalyzer <path_to_file_or_directory>");
@@ -299,8 +301,11 @@ int main(string[] args) {
     }
 
     foreach (file; files.data) {
+        writeln("Processing file: ", file);
         processFile(file);
     }
 
     return 0;
 }
+
+    
