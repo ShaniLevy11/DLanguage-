@@ -1,0 +1,64 @@
+class Test5
+{
+	field int num1,num2;
+	field String s;
+	static char c;
+	
+	constructor Test5 new(int _n1, int _n2, String _s)
+	{
+		let num1 = _n1;
+		let num2 = _n2;
+		let s = _s;
+		return this;
+	}
+	
+	method void methodOne()
+	{
+		var int counter;
+		
+		let counter=Keyboard.readInt("Enter a positive number: ");
+		
+		do Output.println();
+		
+		while(counter>0)
+		{
+			let num1 = num1 * 2;
+			let num2 = num2 + 10;
+			
+			do Output.printString(s);
+			
+			let counter = counter-1;
+		}
+
+		do Output.println();
+		do Output.printInt(num1);
+		do Output.printInt(num2);
+		do Output.println();
+
+        return;
+	}
+	
+	function int funcOne()
+	{
+		let c = 74;
+		do Output.printString("In Sataic: ");
+		do Output.printChar(c);
+		do Output.println();
+
+		return 100;
+	}
+	
+	procedure void procOne(int num1)
+	{
+		let num1 = num1 $ 6;
+		do
+		{	do Output.printInt(num1);
+			let num1 = num1 - 1;
+		} 
+		while ( num1 > 0 );
+		
+		return;	
+	}	
+}
+
+

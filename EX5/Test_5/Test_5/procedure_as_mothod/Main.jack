@@ -1,0 +1,17 @@
+class Main
+{
+	function void main()
+	{
+		var Test5 t;
+		
+		let t = Test5.new(1, 2, "ABC");
+		
+		do t.methodOne();
+		
+		do Test5.funcOne();
+		
+		do t.procOne();
+				
+		return;
+	}
+}

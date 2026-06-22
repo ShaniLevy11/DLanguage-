@@ -1,0 +1,24 @@
+function Main.main 1
+push constant 1
+push constant 2
+push constant 3
+call String.new 1
+push constant 65
+call String.appendChar 2
+push constant 66
+call String.appendChar 2
+push constant 67
+call String.appendChar 2
+call Test5.new 3
+pop local 0
+push local 0
+call Test5.methodOne 1
+pop temp 0
+call Test5.funcOne 0
+pop temp 0
+push local 0
+call Test5.procOne 1
+pop temp 0
+push constant 0
+return
+pop temp 0

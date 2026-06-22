@@ -12,9 +12,9 @@ import std.algorithm;
 import std.conv;
 
 // --- Global Lexicon ---
-string[] JACK_KEYWORDS = ["class", "constructor", "function", "method", "field", "static", "var", "int", "char", "boolean", "void", "true", "false", "null", "this", "let", "do", "if", "else", "while", "return"];
-string[] MATH_LOGIC_OPS = ["+", "-", "*", "/", "&amp;", "|", "&lt;", "&gt;", "="];
-string JACK_SYMBOLS = "{}()[].,;+-*/&|<>=~";
+string[] JACK_KEYWORDS = ["class", "constructor", "function", "method", "procedure", "field", "static", "var", "int", "char", "boolean", "void", "true", "false", "null", "this", "let", "do", "if", "else", "while", "return"];
+string[] MATH_LOGIC_OPS = ["+", "-", "*", "/", "&amp;", "|", "&lt;", "&gt;", "=", "$"];
+string JACK_SYMBOLS = "{}()[].,;+-*/&|<>=~$";
 
 void main() {
     write("Enter the folder path containing .jack files: ");
@@ -296,8 +296,7 @@ class JackCompiler {
         while (peek() == "static" || peek() == "field") {
             compileClassVariables();
         }
-        while (peek() == "constructor" || peek() == "function" || peek() == "method") {
-            compileFunctionOrMethod();
+        while (peek() == "constructor" || peek() == "function" || peek() == "method" || peek() == "procedure") {            compileFunctionOrMethod();
         }
         
         match("}"); 
@@ -326,8 +325,8 @@ class JackCompiler {
         string routineName = eat();
         
         // Methods always pass the object 'this' as the hidden first argument
-        if (routineType == "method") {
-            env.addSymbol("this", currentClassName, VarKind.ARG);
+        if (routineType == "method" || routineType == "procedure") {
+         env.addSymbol("this", currentClassName, VarKind.ARG);
         }
         
         match("(");
@@ -342,8 +341,8 @@ class JackCompiler {
         vm.defineFunction(currentClassName ~ "." ~ routineName, env.count(VarKind.LOCAL));
 
         // Memory setup based on function type
-        if (routineType == "method") {      
-            vm.push("argument", 0); 
+        if (routineType == "method" || routineType == "procedure") {      
+             vm.push("argument", 0); 
             vm.pop("pointer", 0);
         }
         else if (routineType == "constructor") {
@@ -508,6 +507,7 @@ class JackCompiler {
             compileTerm();
             
             if (operator == "+") vm.math("add");
+            else if (operator == "$") vm.math("add");
             else if (operator == "-") vm.math("sub");
             else if (operator == "*") vm.call("Math.multiply", 2);
             else if (operator == "/") vm.call("Math.divide", 2);
@@ -516,7 +516,7 @@ class JackCompiler {
             else if (operator == "&lt;") vm.math("lt");
             else if (operator == "&gt;") vm.math("gt");
             else if (operator == "=") vm.math("eq");
-        }
+            }
     }
 
     void compileTerm() {
@@ -555,7 +555,7 @@ class JackCompiler {
             match(")");
         }
         // It's a String
-        else if (val[0] == '"' || isAlpha(val[0]) && !JACK_KEYWORDS.canFind(val)) {
+        else if (val[0] == '"' || (isAlpha(val[0]) || val[0] == '_') && !JACK_KEYWORDS.canFind(val)) {
              // To simplify, if it's an identifier or string, check the actual nature
              // In this simple version, we assume strings were stripped of quotes in tokenizer or passed whole.
              // We'll rely on the original logic translated cleanly.
